@@ -2,64 +2,78 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Postagem Anônima de Fotos</title>
-  <style>
-    body { font-family: sans-serif; padding: 20px; }
-    img { max-width: 300px; margin: 10px 0; display: block; }
-  </style>
+  <title>Postagens Anônimas</title>
 </head>
 <body>
-  <h1>Postagens Anônimas de Fotos</h1>
+  <h1>Envie uma Foto Anônima</h1>
+  <input type="file" id="upload" />
+  <button onclick="enviarFoto()">Enviar</button>
+  <div id="galeria"></div>
 
-  <input type="file" id="fotoInput"><br>
-  <button onclick="enviarFoto()">Enviar Foto</button>
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
 
-  <hr>
-  <h2>Fotos Enviadas</h2>
-  <div id="fotosContainer"></div>
+    // 🔑 Inicialização do Supabase (PRIMEIRO!)
+    const supabaseUrl = "https://vsazstyxjsgrgggxfpal.supabase.co"
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzYXpzdHl4anNncmdnZ3hmcGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MzQ2MjAsImV4cCI6MjA2MTAxMDYyMH0.O9lHZmcOsFswTprFg3t_mzGid2PSAaRh9qT5VBVHF2E"
+    const supabase = createClient(supabaseUrl, supabaseKey)
 
-  <!-- Supabase JS -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-
-  <script>
-    // 🔐 Configurações do seu projeto Supabase
-    const SUPABASE_URL = "https://vsazstyxjsgrgggxfpal.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzYXpzdHl4anNncmdnZ3hmcGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MzQ2MjAsImV4cCI6MjA2MTAxMDYyMH0.O9lHZmcOsFswTprFg3t_mzGid2PSAaRh9qT5VBVHF2E";
-
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+    // 🖼️ Função para enviar a imagem
     async function enviarFoto() {
-      const file = document.getElementById('fotoInput').files[0];
-      if (!file) return alert("Selecione uma imagem!");
+      const fileInput = document.getElementById("upload")
+      const file = fileInput.files[0]
+      if (!file) return alert("Selecione uma imagem!")
 
-      const fileName = Date.now() + '_' + file.name;
-      const { data, error } = await supabase.storage.from('fotos').upload(fileName, file);
+      const nomeArquivo = Date.now() + "-" + file.name
 
-      if (error) return alert("Erro ao enviar imagem!");
+      // Upload pro bucket
+      const { error: uploadError } = await supabase.storage
+        .from("fotos")
+        .upload(nomeArquivo, file)
 
-      const { data: publicUrlData } = supabase.storage.from('fotos').getPublicUrl(fileName);
-      const url = publicUrlData.publicUrl;
+      if (uploadError) {
+        console.error(uploadError)
+        return alert("Erro ao enviar imagem")
+      }
 
-      await supabase.from('imagens').insert({ url });
-      alert("Imagem enviada com sucesso!");
-      carregarFotos();
+      // Gerar URL pública
+      const { data } = supabase.storage.from("fotos").getPublicUrl(nomeArquivo)
+      const url = data.publicUrl
+
+      // Salvar no banco
+      await supabase.from("imagens").insert({ url })
+
+      // Atualizar galeria
+      carregarFotos()
     }
 
+    // 🖼️ Carregar todas as fotos
     async function carregarFotos() {
-      const container = document.getElementById('fotosContainer');
-      container.innerHTML = '';
+      const { data, error } = await supabase
+        .from("imagens")
+        .select("*")
+        .order("created_at", { ascending: false })
 
-      const { data, error } = await supabase.from('imagens').select('*').order('created_at', { ascending: false });
+      const galeria = document.getElementById("galeria")
+      galeria.innerHTML = ""
 
-      data.forEach(foto => {
-        const img = document.createElement('img');
-        img.src = foto.url;
-        container.appendChild(img);
-      });
+      if (error) {
+        console.error(error)
+        return
+      }
+
+      data.forEach(img => {
+        const tag = document.createElement("img")
+        tag.src = img.url
+        tag.style = "max-width: 300px; margin: 10px;"
+        galeria.appendChild(tag)
+      })
     }
 
-    carregarFotos();
+    // Carrega as fotos ao abrir a página
+    carregarFotos()
   </script>
 </body>
 </html>
+
 
