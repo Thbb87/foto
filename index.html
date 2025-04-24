@@ -40,6 +40,8 @@
       const { data } = supabase.storage.from("fotos").getPublicUrl(nomeArquivo)
       const url = data.publicUrl
 
+      console.log("Imagem enviada com URL:", url)
+      
       await supabase.from("imagens").insert({ url })
 
       carregarFotos()
