@@ -2,10 +2,10 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Postagem Anônima de Fotos</title>
+  <title>Envie sua Foto</title>
 </head>
 <body>
-  <h1>Envie uma Foto Anônima</h1>
+  <h1>Postagem Anônima de Fotos</h1>
   <input type="file" id="upload" />
   <button onclick="enviarFoto()">Enviar</button>
   <div id="galeria"></div>
@@ -13,13 +13,13 @@
   <!-- Supabase SDK via CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
+  <!-- Código precisa estar após o Supabase estar carregado -->
   <script>
-    // 🔑 Inicializar Supabase
+    // ⚙️ Inicializa o Supabase
     const supabaseUrl = "https://vsazstyxjsgrgggxfpal.supabase.co"
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzYXpzdHl4anNncmdnZ3hmcGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MzQ2MjAsImV4cCI6MjA2MTAxMDYyMH0.O9lHZmcOsFswTprFg3t_mzGid2PSAaRh9qT5VBVHF2E"
     const supabase = supabase.createClient(supabaseUrl, supabaseKey)
 
-    // 📤 Enviar imagem
     async function enviarFoto() {
       const fileInput = document.getElementById("upload")
       const file = fileInput.files[0]
@@ -34,18 +34,17 @@
 
       if (uploadError) {
         console.error(uploadError)
-        alert("Erro ao enviar imagem.")
-        return
+        return alert("Erro ao enviar imagem")
       }
 
       const { data } = supabase.storage.from("fotos").getPublicUrl(nomeArquivo)
       const url = data.publicUrl
 
       await supabase.from("imagens").insert({ url })
+
       carregarFotos()
     }
 
-    // 🖼️ Mostrar imagens na tela
     async function carregarFotos() {
       const { data, error } = await supabase
         .from("imagens")
@@ -68,7 +67,6 @@
       })
     }
 
-    // 🚀 Carregar fotos ao abrir o site
     carregarFotos()
   </script>
 </body>
