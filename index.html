@@ -1,49 +1,75 @@
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-<script>
-  const supabaseUrl = "https://vsazstyxjsgrgggxfpal.supabase.co"
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-  const supabase = supabase.createClient(supabaseUrl, supabaseKey)
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Postagem Anônima de Fotos</title>
+</head>
+<body>
+  <h1>Envie uma Foto Anônima</h1>
+  <input type="file" id="upload" />
+  <button onclick="enviarFoto()">Enviar</button>
+  <div id="galeria"></div>
 
-  async function enviarFoto() {
-    const fileInput = document.getElementById("upload")
-    const file = fileInput.files[0]
-    if (!file) return alert("Selecione uma imagem!")
+  <!-- Supabase SDK via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
-    const nomeArquivo = Date.now() + "-" + file.name
+  <script>
+    // 🔑 Inicializar Supabase
+    const supabaseUrl = "https://vsazstyxjsgrgggxfpal.supabase.co"
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzYXpzdHl4anNncmdnZ3hmcGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MzQ2MjAsImV4cCI6MjA2MTAxMDYyMH0.O9lHZmcOsFswTprFg3t_mzGid2PSAaRh9qT5VBVHF2E"
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey)
 
-    const { error: uploadError } = await supabase.storage
-      .from("fotos")
-      .upload(nomeArquivo, file)
+    // 📤 Enviar imagem
+    async function enviarFoto() {
+      const fileInput = document.getElementById("upload")
+      const file = fileInput.files[0]
+      if (!file) return alert("Selecione uma imagem!")
 
-    if (uploadError) {
-      console.error(uploadError)
-      return alert("Erro ao enviar imagem")
+      const nomeArquivo = Date.now() + "-" + file.name
+
+      const { error: uploadError } = await supabase
+        .storage
+        .from("fotos")
+        .upload(nomeArquivo, file)
+
+      if (uploadError) {
+        console.error(uploadError)
+        alert("Erro ao enviar imagem.")
+        return
+      }
+
+      const { data } = supabase.storage.from("fotos").getPublicUrl(nomeArquivo)
+      const url = data.publicUrl
+
+      await supabase.from("imagens").insert({ url })
+      carregarFotos()
     }
 
-    const { data } = supabase.storage.from("fotos").getPublicUrl(nomeArquivo)
-    const url = data.publicUrl
+    // 🖼️ Mostrar imagens na tela
+    async function carregarFotos() {
+      const { data, error } = await supabase
+        .from("imagens")
+        .select("*")
+        .order("created_at", { ascending: false })
 
-    await supabase.from("imagens").insert({ url })
+      const galeria = document.getElementById("galeria")
+      galeria.innerHTML = ""
 
+      if (error) {
+        console.error(error)
+        return
+      }
+
+      data.forEach(img => {
+        const tag = document.createElement("img")
+        tag.src = img.url
+        tag.style = "max-width: 300px; margin: 10px;"
+        galeria.appendChild(tag)
+      })
+    }
+
+    // 🚀 Carregar fotos ao abrir o site
     carregarFotos()
-  }
-
-  async function carregarFotos() {
-    const { data, error } = await supabase
-      .from("imagens")
-      .select("*")
-      .order("created_at", { ascending: false })
-
-    const galeria = document.getElementById("galeria")
-    galeria.innerHTML = ""
-
-    data.forEach(img => {
-      const tag = document.createElement("img")
-      tag.src = img.url
-      tag.style = "max-width: 300px; margin: 10px;"
-      galeria.appendChild(tag)
-    })
-  }
-
-  carregarFotos()
-</script>
+  </script>
+</body>
+</html>
