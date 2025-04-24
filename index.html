@@ -2,20 +2,20 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Envie sua Foto</title>
+  <title>Postagem Anônima de Fotos</title>
 </head>
 <body>
-  <h1>Postagem de Fotos</h1>
+  <h1>Envie uma Foto</h1>
   <input type="file" id="upload" />
   <button onclick="enviarFoto()">Enviar</button>
   <div id="galeria"></div>
 
-  <!-- Supabase SDK via CDN -->
+  <!-- Carrega a biblioteca do Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
-  <!-- Código precisa estar após o Supabase estar carregado -->
+  <!-- Todo o código deve vir depois do Supabase estar carregado -->
   <script>
-    // ⚙️ Inicializa o Supabase
+    // Inicialização do Supabase
     const supabaseUrl = "https://vsazstyxjsgrgggxfpal.supabase.co"
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzYXpzdHl4anNncmdnZ3hmcGFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0MzQ2MjAsImV4cCI6MjA2MTAxMDYyMH0.O9lHZmcOsFswTprFg3t_mzGid2PSAaRh9qT5VBVHF2E"
     const supabase = supabase.createClient(supabaseUrl, supabaseKey)
@@ -34,7 +34,7 @@
 
       if (uploadError) {
         console.error(uploadError)
-        return alert("Erro ao enviar imagem")
+        return alert("Erro ao enviar imagem.")
       }
 
       const { data } = supabase.storage.from("fotos").getPublicUrl(nomeArquivo)
@@ -67,6 +67,7 @@
       })
     }
 
+    // Carrega fotos ao abrir a página
     carregarFotos()
   </script>
 </body>
